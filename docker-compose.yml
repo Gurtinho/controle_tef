@@ -1,0 +1,49 @@
+version: '3.7'
+
+networks:
+  tef:
+    driver: bridge
+
+services:
+  app:
+    build: .
+    container_name: tef-app
+    env_file: ./.env
+    ports:
+      - 3000:3000
+      - 9229:9229
+    volumes:
+      - .:/usr/node/app
+    environment:
+      - DATABASE_URL=$DATABASE_URL
+      - POSTGRES_HOST=$DB_HOST
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASS
+      - POSTGRES_DB=$DB_BASE
+      - POSTGRES_PORT=$DB_DOCKER_PORT
+    links:
+      - database
+    depends_on:
+      - database
+    networks:
+      - tef
+
+  database:
+    image: postgres
+    container_name: tef-db
+    restart: always
+    env_file: ./.env
+    tty: true
+    ports:
+      - $DB_LOCAL_PORT:$DB_DOCKER_PORT
+    environment:
+      - DATABASE_URL=$DATABASE_URL
+      - POSTGRES_HOST=$DB_HOST
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASS
+      - POSTGRES_DB=$DB_BASE
+      - POSTGRES_PORT=$DB_DOCKER_PORT
+    volumes:
+      - .docker/dbdata:/var/lib/postgresql
+    networks:
+      - tef
